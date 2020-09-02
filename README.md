@@ -15,7 +15,7 @@ A starter for [BIMFACE](http://www.bimface.com) development which has both clien
 * Prepare Database. Basically, you can use any database, and mysql is the database used in the starter.
   * Install [mysql](https://www.mysql.com/)
   * Log in the mysql with your account. 
-    * ```mysql -u <your_db_account_name> -p```
+    * ```mysql -u <your_db_account_name> -p```, e.g., *mysql -u foo -p*
   * Create starter database. 'utf8' is needed for characters like Chinese.
     * ```CREATE DATABASE bimface_starter CHARACTER SET='utf8';```
 * Prepare Node.js environment
@@ -25,7 +25,7 @@ A starter for [BIMFACE](http://www.bimface.com) development which has both clien
 * Install dependencies.
   * ```npm install```
 * Set up environment variables. Mac/Linux terminal uses ```export <var_name>=<var_value>``` and Windows terminal uses ```set <var_name>=<var_value>```. The examples below use Mac style.
-    * Set BIMFACE app key. ```export BIMFACE_APP_KEY=<your_key>```
+    * Set BIMFACE app key. ```export BIMFACE_APP_KEY=<your_key>```, e.g., *export BIMFACE_APP_KEY=bar*
     * Set BIMFACE app secret. ```export BIMFACE_APP_SECRET=<your_secret>```
     * Set database user name. ```export DB_USER_NAME=<your_name>```
     * Set database user password. ```export DB_PASSWORD=<your_password>```
