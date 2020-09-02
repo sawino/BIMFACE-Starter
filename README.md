@@ -2,10 +2,12 @@
 A starter for [BIMFACE](http://www.bimface.com) development which has both client and server. The client users can upload / translate files and save / load business data (like tags) using the program.
 
 # Technology Stack
+* BIM
+  * BIMFACE
 * Server
-  * Typescript, KOA2, TypeORM, JWT
+  * Typescript, koa2, TypeORM, JWT
 * Client
-  * Javascript (ES6), Vue, Element-UI, Webpack
+  * Javascript (ES6), Vue2, Vuex, Element-UI, Webpack
 
 # How to use
 ## Preparation
@@ -76,7 +78,6 @@ No. Feel free to use or modify the code.
 # FAQ
 * How to save / load / extend the business data?
   * Go to *client/src/components/FileViewer.ts*, check save() and load() methods. Each file has a custom data for business data storage, and the size is 16 MB.
-* How to 
 * How to deploy the output in production?
   * For server
     * ```npm run build```
@@ -84,5 +85,15 @@ No. Feel free to use or modify the code.
     * ```npm run prd``` or place the outputs of *dist/* to your server and run with the *www.js* file.
   * For client
     * ```npm run build```
-    * Place the outputs of *dist/* to your server.
+    * Place the outputs of *dist/* to your static server.
+      * If the static server is nginx, you may need to add contents below to your nginx.conf
+        ```
+        location / {
+            # try_files $uri $uri/ <your_dist_folder_name>/$uri /index.html @bsServer;
+        }
+
+        location @bsServer {
+             proxy_pass <your_production_host_server_address>; // e.g., http://10.10.10.10:3000
+        }
+        ```
 
