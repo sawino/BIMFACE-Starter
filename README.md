@@ -89,7 +89,7 @@ No. Feel free to use or modify the code.
       * If the static server is nginx, you may need to add contents below to your nginx.conf
         ```
         location / {
-            # try_files $uri $uri/ <your_dist_folder_name>/$uri /index.html @bsServer;
+            try_files $uri $uri/ <your_dist_folder_name>/$uri /index.html @bsServer;
         }
 
         location @bsServer {
