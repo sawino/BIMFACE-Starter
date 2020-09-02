@@ -80,6 +80,7 @@ No. Feel free to use or modify the code.
 * How to deploy the output in production?
   * For server
     * ```npm run build```
+    * ```npm install -g pm2```
     * ```npm run prd``` or place the outputs of *dist/* to your server and run with the *www.js* file.
   * For client
     * ```npm run build```
