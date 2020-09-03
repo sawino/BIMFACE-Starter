@@ -73,7 +73,7 @@ The *server* uses BIMFACE service to upload / translate / delete files and store
   * `NODE_ENV`, the switch for production and developement variables. Values could be 'production' or 'development' and the latter is the default.
 > Set the host address for producton and development at *src/store/modules/configs.js*
 # Licensing
-No. Feel free to use or modify the code.
+MIT.
 
 # FAQ
 * How to save / load / extend the business data?
