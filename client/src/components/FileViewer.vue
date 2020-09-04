@@ -45,7 +45,7 @@ export default {
         return {
             commandHandlers: {},
             activeClickHandler: null,
-            menuOpenDelayValue: '1500',
+            menuOpenDelayValue: 1500,
             selectedTag: null,
             selectedTag: null,
             isShowMenu: false,
