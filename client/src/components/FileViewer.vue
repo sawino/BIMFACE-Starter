@@ -9,12 +9,17 @@
                     <el-button @click="onSaveButtonClicked" icon="el-icon-upload2" v-if="isShowMenu"></el-button>
                 </el-tooltip>
             </el-row>
-            <el-row ref="subToolbar" v-show="isShowMenu">
+            <el-row ref="clickToolbar" v-show="isShowMenu">
+                <el-tooltip content="Select" effect="light">
+                    <el-button @click="onClickHandlerButtonClicked('Select')" icon="el-icon-top-left"></el-button>
+                </el-tooltip>
+                <el-tooltip content="Add tag" effect="light">
+                    <el-button @click="onClickHandlerButtonClicked('AddTag')" icon="el-icon-location-outline"></el-button>
+                </el-tooltip>
+            </el-row>
+            <el-row v-show="isShowMenu">
                 <el-tooltip content="Toggle rotate" effect="light">
                     <el-button @click="onToggleRotateButtonClicked" icon="el-icon-loading"></el-button>
-                </el-tooltip>
-                <el-tooltip content="Toggle add tag" effect="light">
-                    <el-button @click="onToggleAddTagButtonClicked" icon="el-icon-location-outline"></el-button>
                 </el-tooltip>
             </el-row>
         </div>
@@ -23,19 +28,24 @@
 </template>
 
 <script>
-import axios from 'axios'
 import {mapState} from 'vuex'
+import {
+    SelectHandler,
+    AddTagHandler,
+    SaveHandler,
+    LoadHandler,
+    AutoRotateHandler} from '../commandHandlers/FileViewerCommandHandler'
 /* eslint-disable */ 
 export default {
     data: function () {
         return {
+            commandHandlers: {},
+            activeClickHandler: null,
             isShowMenu: false,
             isViewLoaded: false,
             viewer: null,
             viewToken: '',
             app: null,
-            isStartAutoRotate: false,
-            isAddTag: false,
             isDirty: false,
             tagContainer: null,
             fileId: '',
@@ -82,50 +92,8 @@ export default {
             drawableContainerConfig.viewer = this.viewer;
             this.tagContainer = new Glodon.Bimface.Plugins.Drawable.DrawableContainer(drawableContainerConfig);
 
-            let options = this.$store.getters['auth/authOptions']
-            options = Object.assign(options,
-                {
-                    params: {
-                        fileId: this.fileId
-                    }   
-                })
-
-            axios.get(this.hostUrl + '/api/fileCustomData', options)
-                .then(res => {
-                    if (res.data.code === '0' && res.data.data.length > 0) {
-                        let data = res.data.data[0]
-                        this.customData = JSON.parse(data.content)
-                        this.load()
-                    }
-                })
-                .catch(err => {
-                    this.$message.error(err)
-                })
-        },
-        createTag: function(text, worldPosition, viewer) {
-            let config = new Glodon.Bimface.Plugins.Drawable.CustomItemConfig();
-            config.content = this.createTagContent(text);
-            config.worldPosition = worldPosition;
-            config.viewer = viewer;
-            return new Glodon.Bimface.Plugins.Drawable.CustomItem(config)
-        },
-        createTagContent: function(text) {
-            var content = document.createElement('div');
-            content.innerText = text;
-            // tag size
-            content.style.width = '200px';
-            content.style.height = '28px';
-            // tag style
-            content.style.border = 'solid';
-            content.style.borderColor = '#000000';
-            content.style.borderWidth = '2px';
-            content.style.borderRadius = '5%';
-            content.style.background = '#AAAA99';
-            // tag content style
-            content.style.color = '#FFFFFF';
-            content.style.textAlign = 'left';
-            content.style.lineHeight = '24px';
-            return content;
+            this.viewer.addEventListener(Glodon.Bimface.Viewer.Viewer3DEvent.MouseClicked, this.onViewerClicked);
+            this.load()
         },
         onMetaLoadFailed: function(error) {
             console.log(error)
@@ -137,26 +105,15 @@ export default {
             this.save()
         },
         onToggleRotateButtonClicked: function() {
-            this.isStartAutoRotate = !this.isStartAutoRotate
-            if (this.isStartAutoRotate) {
-                this.viewer.startAutoRotate(5)
-            } else {
-                this.viewer.startAutoRotate(0)
-            }
+            this.commandHandlers['AutoRotate'].run()
         },
-        onToggleAddTagButtonClicked: function() {
-            this.isAddTag = !this.isAddTag
-            if (this.isAddTag) {
-                this.viewer.addEventListener(Glodon.Bimface.Viewer.Viewer3DEvent.MouseClicked, this.onAddTagInvoked);
-            } else {
-                this.viewer.removeEventListener(Glodon.Bimface.Viewer.Viewer3DEvent.MouseClicked, this.onAddTagInvoked);
-            }
+        onClickHandlerButtonClicked: function(args) {
+            this.commandHandlers[args].activate()
+        },
+        onViewerClicked: function(args) {
+            this.activeClickHandler.run(args)
         },
         onAddTagInvoked: function(args) {
-            this.isDirty = true;
-            let text = `ID: ${args.objectId} Type: ${args.objectType}`;
-            let tag = this.createTag(text, args.worldPosition, this.viewer)
-            this.tagContainer.addItem(tag)
         },
         resetData: function() {
             this.tagContainer = null,
@@ -166,66 +123,22 @@ export default {
             }
         },
         load: function() {
-            this.customData.tags.forEach(item => {
-                let tag = this.createTag(item.innerText, item.worldPosition, this.viewer)
-                this.tagContainer.addItem(tag);
-            })
-            
-            this.viewer.setState(this.customData.currentState, (args) => {
-                this.viewer.render()
-            })
+            this.commandHandlers['Load'].run()
         },
         save: function() {
-            return new Promise((resolve, reject) => {
-                if (!this.isDirty) {
-                    resolve()
-                    return
-                }
-
-                // save state
-                this.customData.currentState = this.viewer.getCurrentState()
-                // save tag
-                this.customData.tags = []
-                let allTags = this.tagContainer.getAllItems()
-                allTags.forEach(item => {
-                    this.customData.tags.push({
-                        innerText: item.config.content.innerText,
-                        worldPosition: item.worldPosition
-                    })
-                })
-
-                let data = {
-                    name: '', // we can custom the name
-                    fileId: this.fileId,
-                    content: this.customData
-                }
-                let options = this.$store.getters['auth/authOptions']
-                axios.put(this.hostUrl + '/api/fileCustomData', data, options)
-                    .then(res => {
-                        if (res.data.code === '0') {
-                            this.isDirty = false
-                            this.$message({
-                                message: "Save successfully",
-                                type: "success"
-                            })
-                            resolve()
-                        } else {
-                            this.$message.error("Save failed")
-                            reject()
-                        }
-                    })
-                    .catch(err => {
-                        console.log(err)
-                        this.$message.error(err)
-                        reject()
-                    })
-            })
-
+            this.commandHandlers['Save'].run()
         }
     },
     beforeDestroy: function() {
         // auto save
         this.save()
+    },
+    mounted: function() {
+        new SelectHandler(this).load()
+        new AddTagHandler(this).load()
+        new SaveHandler(this).load()
+        new LoadHandler(this).load()
+        new AutoRotateHandler(this).load()
     }
 }
 
