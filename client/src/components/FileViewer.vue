@@ -2,24 +2,27 @@
     <div class="full-canvas file-view">
         <div class="file-view-toolbar" v-if="isViewLoaded">
             <el-row ref="mainToolbarBar">
-                <el-tooltip content="Toogle Menu" effect="light">
+                <el-tooltip content="Toogle Menu" effect="light" :open-delay="menuOpenDelayValue">
                     <el-button ref="menuSwitchButton" @click="onMenuSwitchButtonClicked" icon="el-icon-menu" v-bind:class='{"dummy-button":!isShowMenu}'></el-button>
                 </el-tooltip>
-                <el-tooltip content="Save" effect="light">
+                <el-tooltip content="Save" effect="light" :open-delay="menuOpenDelayValue">
                     <el-button @click="onSaveButtonClicked" icon="el-icon-upload2" v-if="isShowMenu"></el-button>
                 </el-tooltip>
             </el-row>
             <el-row ref="clickToolbar" v-show="isShowMenu">
-                <el-tooltip content="Select" effect="light">
+                <el-tooltip content="Select" effect="light" :open-delay="menuOpenDelayValue">
                     <el-button @click="onClickHandlerButtonClicked('Select')" icon="el-icon-top-left"></el-button>
                 </el-tooltip>
-                <el-tooltip content="Add tag" effect="light">
-                    <el-button @click="onClickHandlerButtonClicked('AddTag')" icon="el-icon-location-outline"></el-button>
+                <el-tooltip content="Add tag" effect="light" :open-delay="menuOpenDelayValue">
+                    <el-button @click="onClickHandlerButtonClicked('AddTag')" icon="el-icon-add-location"></el-button>
                 </el-tooltip>
             </el-row>
             <el-row v-show="isShowMenu">
-                <el-tooltip content="Toggle rotate" effect="light">
+                <el-tooltip content="Toggle rotate" effect="light" :open-delay="menuOpenDelayValue">
                     <el-button @click="onToggleRotateButtonClicked" icon="el-icon-loading"></el-button>
+                </el-tooltip>
+                <el-tooltip content="Remove Tag" effect="light" :open-delay="menuOpenDelayValue">
+                    <el-button @click="onRemoveTagButtonClicked" icon="el-icon-delete-location"></el-button>
                 </el-tooltip>
             </el-row>
         </div>
@@ -34,6 +37,7 @@ import {
     AddTagHandler,
     SaveHandler,
     LoadHandler,
+    RemoveTagHandler,
     AutoRotateHandler} from '../commandHandlers/FileViewerCommandHandler'
 /* eslint-disable */ 
 export default {
@@ -41,6 +45,9 @@ export default {
         return {
             commandHandlers: {},
             activeClickHandler: null,
+            menuOpenDelayValue: '1500',
+            selectedTag: null,
+            selectedTag: null,
             isShowMenu: false,
             isViewLoaded: false,
             viewer: null,
@@ -111,9 +118,14 @@ export default {
             this.commandHandlers[args].activate()
         },
         onViewerClicked: function(args) {
-            this.activeClickHandler.run(args)
+            if (this.activeClickHandler !== null) {
+                this.activeClickHandler.run(args)
+            }
         },
         onAddTagInvoked: function(args) {
+        },
+        onRemoveTagButtonClicked: function() {
+            this.commandHandlers['RemoveTag'].run()
         },
         resetData: function() {
             this.tagContainer = null,
@@ -139,6 +151,7 @@ export default {
         new SaveHandler(this).load()
         new LoadHandler(this).load()
         new AutoRotateHandler(this).load()
+        new RemoveTagHandler(this).load()
     }
 }
 

@@ -47,36 +47,39 @@ class AddTagHandler extends ModelClickHandler {
 
     runCore(eventArgs) {
         this.fileViewer.isDirty = true;
-        let text = `ID: ${eventArgs.objectId} Type: ${eventArgs.objectType}`;
-        let tag = this.createTag(text, eventArgs.worldPosition, this.fileViewer.viewer)
+        let text = `Object ID: ${eventArgs.objectId}`;
+        this.addTag(text, eventArgs.worldPosition, this.fileViewer.viewer, eventArgs.objectId)
+    }
+
+    addTag(text, worldPosition, viewer, objectId) {
+        var config = new Glodon.Bimface.Plugins.Drawable.LeadLabelConfig();
+        config.offset = {x: 27, y: -47};
+        config.text = text;
+        config.objectId = objectId;
+        config.worldPosition = worldPosition;
+        config.draggable = true;
+        config.viewer = viewer;
+
+        let tag = new Glodon.Bimface.Plugins.Drawable.LeadLabel(config);
+        tag.onClick((item) => {
+            this.fileViewer.selectedTag = item
+        })
         this.fileViewer.tagContainer.addItem(tag)
     }
+}
 
-    createTag(text, worldPosition) {
-        let config = new Glodon.Bimface.Plugins.Drawable.CustomItemConfig();
-        config.content = this.createTagContent(text);
-        config.worldPosition = worldPosition;
-        config.viewer = this.fileViewer.viewer;
-        return new Glodon.Bimface.Plugins.Drawable.CustomItem(config)
+class RemoveTagHandler extends FileViewerCommandHandler {
+    constructor(fileViewer) {
+        super('RemoveTag', fileViewer)
     }
 
-    createTagContent(text) {
-        var content = document.createElement('div');
-        content.innerText = text;
-        // tag size
-        content.style.width = '200px';
-        content.style.height = '28px';
-        // tag style
-        content.style.border = 'solid';
-        content.style.borderColor = '#000000';
-        content.style.borderWidth = '2px';
-        content.style.borderRadius = '5%';
-        content.style.background = '#AAAA99';
-        // tag content style
-        content.style.color = '#FFFFFF';
-        content.style.textAlign = 'left';
-        content.style.lineHeight = '24px';
-        return content;
+    run() {
+        if (this.fileViewer.selectedTag !== null) {
+            this.fileViewer.tagContainer.removeItemById(this.fileViewer.selectedTag.getId())
+            this.fileViewer.selectedTag = null
+        } else {
+            this.fileViewer.$message('Select a tag before removing')
+        }
     }
 }
 
@@ -97,10 +100,12 @@ class SaveHandler extends FileViewerCommandHandler {
             // save tag
             this.fileViewer.customData.tags = []
             let allTags = this.fileViewer.tagContainer.getAllItems()
+
             allTags.forEach(item => {
                 this.fileViewer.customData.tags.push({
-                    innerText: item.config.content.innerText,
-                    worldPosition: item.worldPosition
+                    text: item.getText(),
+                    worldPosition: item.worldPosition,
+                    objectId: item.getObjectId()
                 })
             })
 
@@ -153,8 +158,7 @@ class LoadHandler extends FileViewerCommandHandler {
                     let data = res.data.data[0]
                     this.fileViewer.customData = JSON.parse(data.content)
                     this.fileViewer.customData.tags.forEach(item => {
-                        let tag = this.handlers['AddTag'].createTag(item.innerText, item.worldPosition)
-                        this.fileViewer.tagContainer.addItem(tag);
+                        this.handlers['AddTag'].addTag(item.text, item.worldPosition, this.fileViewer.viewer, item.objectId)
                     })
 
                     this.fileViewer.viewer.setState(this.fileViewer.customData.currentState, (args) => {
@@ -183,4 +187,4 @@ class AutoRotateHandler extends FileViewerCommandHandler {
         }
     }
 }
-export {SelectHandler, AddTagHandler, SaveHandler, LoadHandler, AutoRotateHandler}
+export {SelectHandler, AddTagHandler, SaveHandler, LoadHandler, AutoRotateHandler, RemoveTagHandler}
