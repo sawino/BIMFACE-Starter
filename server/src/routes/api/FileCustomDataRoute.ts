@@ -45,7 +45,7 @@ fileCustomDataRouter
             return;
         } 
 
-        let res = await dataRepository.delete(data);
+        let res = await dataRepository.remove(data);
         ctx.body = ResponseData.createSuccessResponse("");
     })
     .put("/", async ctx => {

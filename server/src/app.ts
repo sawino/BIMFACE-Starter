@@ -55,7 +55,6 @@ app.use(views(__dirname + './../views', {
         connectionOptions = Object.assign(connectionOptions, globalConfigs.getTypeOrmConfig())
         let connection = await createConnection(connectionOptions)
         if (connection !== null) {
-            // app.use((ctx, next) => ctx.state = Object.assign(ctx.state, {connection: connection}))
             console.log(`Database: ${connection.options.type} connected`)
         }
         

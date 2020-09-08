@@ -55,7 +55,7 @@ userRouter
         // todo: delete file from bimface
         // todo: delete file custom data from db
         // todo: delete file from db
-        // await userRepository.delete(+ctx.params.id)
+        // await userRepository.remove(+ctx.params.id)
         // ctx.body = ResponseData.build(true);
     });
 

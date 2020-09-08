@@ -71,9 +71,7 @@ fileRouter
         let res = await bimfaceService.deleteFileAsync(ctx.query.fileId);
     
         if (res.code === 'success') {
-            const dataRepository = await getManager().getRepository(FileCustomData)
-            await dataRepository.delete({file: file})
-            await fileRepository.delete({id: file.id})
+            await fileRepository.remove(file)
         }
 
         let resObject = {
