@@ -1,7 +1,7 @@
 import * as Koa from 'koa'
 import {apiRouter, unprotectedRouter} from './routes'
 import "reflect-metadata";
-import {createConnection} from 'typeorm';
+import {createConnection, getConnectionOptions} from 'typeorm';
 import * as bodyParser from 'koa-bodyparser';
 import globalConfigs from './configs/GlobalConfigs'
 import * as jwt from 'koa-jwt'
@@ -51,7 +51,9 @@ app.use(views(__dirname + './../views', {
 
 (async () => {
     try {
-        let connection = await createConnection(globalConfigs.getTypeOrmConfig());
+        let connectionOptions = await getConnectionOptions(globalConfigs.getDbConnectionName())
+        connectionOptions = Object.assign(connectionOptions, globalConfigs.getTypeOrmConfig())
+        let connection = await createConnection(connectionOptions)
         if (connection !== null) {
             // app.use((ctx, next) => ctx.state = Object.assign(ctx.state, {connection: connection}))
             console.log(`Database: ${connection.options.type} connected`)

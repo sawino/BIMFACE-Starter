@@ -11,29 +11,14 @@ class GlobalConfigs {
             jwtSecret: '',
             jwtExpireIn: '',
             typeOrmConfig: {
+                "name": "",
                 "type": "",
                 "host": "",
                 "port": "",
                 "username": "",
                 "password": "",
-                "database": "",
-                "synchronize": true,
-                "logging": false,
-                "entities": [
-                   "src/entity/**/*.ts"
-                ],
-                "migrations": [
-                   "src/migration/**/*.ts"
-                ],
-                "subscribers": [
-                   "src/subscriber/**/*.ts"
-                ],
-                "cli": {
-                   "entitiesDir": "src/entity",
-                   "migrationsDir": "src/migration",
-                   "subscribersDir": "src/subscriber"
-                }
-             }
+                "database": ""
+            }
         }
 
         this.configs['nodeEnv'] = process.env.NODE_ENV || 'development'
@@ -50,6 +35,7 @@ class GlobalConfigs {
         this.setValue(this.configs['typeOrmConfig'], 'username', 'DB_USER_NAME', 'not_defined', 'not_defined')
         this.setValue(this.configs['typeOrmConfig'], 'password', 'DB_PASSWORD', 'not_defined', 'not_defined')
         this.setValue(this.configs['typeOrmConfig'], 'database', 'DB_DATABASE', 'not_defined', 'bimface_starter')
+        this.setValue(this.configs['typeOrmConfig'], 'name', 'DB_CONNECTION_NAME', 'production', 'default')
     }
 
     public  getPort() {
@@ -82,6 +68,10 @@ class GlobalConfigs {
 
     public getTypeOrmConfig() {
         return this.configs['typeOrmConfig']
+    }
+
+    public getDbConnectionName() {
+        return this.configs['typeOrmConfig']['name']
     }
 
     private setValue(obj: any, variable: string, envKey: string, productionValue: string, developmentValue: string) {
