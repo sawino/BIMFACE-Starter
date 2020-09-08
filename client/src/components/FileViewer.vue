@@ -1,5 +1,5 @@
 <template>
-    <div class="full-canvas file-view">
+    <div class="full-canvas file-view" id="fileViewer">
         <div class="file-view-toolbar" v-if="isViewLoaded">
             <el-row ref="mainToolbarBar">
                 <el-tooltip content="Toogle Menu" effect="light" :open-delay="menuOpenDelayValue">
@@ -24,6 +24,9 @@
                 <el-tooltip content="Remove Tag" effect="light" :open-delay="menuOpenDelayValue">
                     <el-button @click="onRemoveTagButtonClicked" icon="el-icon-delete-location"></el-button>
                 </el-tooltip>
+                <el-tooltip content="Toggle Full Screen" effect="light" :open-delay="menuOpenDelayValue">
+                    <el-button @click="onToggleFullScreenButtonClicked" icon="el-icon-full-screen"></el-button>
+                </el-tooltip>
             </el-row>
         </div>
         <div id="viewContainer" class="full-canvas"></div>
@@ -38,7 +41,8 @@ import {
     SaveHandler,
     LoadHandler,
     RemoveTagHandler,
-    AutoRotateHandler} from '../commandHandlers/FileViewerCommandHandler'
+    AutoRotateHandler,
+    FullScreenHandler} from '../commandHandlers/FileViewerCommandHandler'
 /* eslint-disable */ 
 export default {
     data: function () {
@@ -127,6 +131,10 @@ export default {
         onRemoveTagButtonClicked: function() {
             this.commandHandlers['RemoveTag'].run()
         },
+        onToggleFullScreenButtonClicked: function() {
+            let element = document.getElementById('fileViewer')
+            this.commandHandlers['FullScreen'].run(element)
+        },
         resetData: function() {
             this.tagContainer = null,
             this.customData = {
@@ -152,6 +160,7 @@ export default {
         new LoadHandler(this).load()
         new AutoRotateHandler(this).load()
         new RemoveTagHandler(this).load()
+        new FullScreenHandler(this).load()
     }
 }
 

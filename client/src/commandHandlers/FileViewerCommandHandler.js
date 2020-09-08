@@ -187,4 +187,63 @@ class AutoRotateHandler extends FileViewerCommandHandler {
         }
     }
 }
-export {SelectHandler, AddTagHandler, SaveHandler, LoadHandler, AutoRotateHandler, RemoveTagHandler}
+
+class FullScreenHandler extends FileViewerCommandHandler {
+    constructor(fileViewer) {
+        super('FullScreen', fileViewer)
+    }
+
+    run(domElement) {
+        if (domElement === null || domElement === undefined) {
+            return
+        }
+
+        if (this.isFullScreen()) {
+            this.exitFullScreen()
+        } else {
+            this.enterFullScreen(domElement)
+        }
+    }
+
+    enterFullScreen(ele) {
+        if (ele.requestFullscreen) {
+            ele.requestFullscreen();
+        } else if (ele.mozRequestFullScreen) {
+            ele.mozRequestFullScreen();
+        } else if (ele.webkitRequestFullscreen) {
+            ele.webkitRequestFullscreen();
+        } else if (ele.msRequestFullscreen) {
+            ele.msRequestFullscreen();
+        }
+    }
+
+    exitFullScreen() {
+        if (document.exitFullScreen) {
+            document.exitFullScreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+
+    isFullScreen() {
+        return !!(
+            document.fullscreen ||
+            document.mozFullScreen ||
+            document.webkitIsFullScreen ||
+            document.webkitFullScreen ||
+            document.msFullScreen);
+    }
+}
+export {
+    SelectHandler,
+    AddTagHandler,
+    SaveHandler,
+    LoadHandler,
+    AutoRotateHandler,
+    RemoveTagHandler,
+    FullScreenHandler
+}
