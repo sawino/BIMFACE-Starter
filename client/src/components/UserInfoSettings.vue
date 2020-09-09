@@ -12,8 +12,11 @@
                     <el-form-item label="Password" prop="pass">
                         <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
                     </el-form-item>
-                    <el-form-item label="Confirm password" prop="checkPass">
-                        <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
+                    <el-form-item label="New password" prop="newPass">
+                        <el-input type="password" v-model="ruleForm.newPass" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="Confirm password" prop="checkNewPass">
+                        <el-input type="password" v-model="ruleForm.checkNewPass" autocomplete="off"></el-input>
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="submitForm('ruleForm')">Submitt</el-button>
@@ -27,61 +30,31 @@
 <script>
 import axios from 'axios'
 import {mapState} from 'vuex'
+import FormValidator from '../utils/FormValidator'
 
 export default {
-    data() {
-        var checkUserName = (rule, value, callback) => {
-            if (value === '') {
-                return callback(new Error('User name cannot be empty'));
-            }
-
-            callback();
-        };
+    data: function() {
         var validatePass = (rule, value, callback) => {
-            if (value === '') {
-                callback(new Error('Please input password'));
-            } else {
-                if (this.ruleForm.checkPass !== '') {
-                    this.$refs.ruleForm.validateField('checkPass');
-                }
-                callback();
-            }
-        };
-        var validatePass2 = (rule, value, callback) => {
-            if (value === '') {
-                callback(new Error('Please input password again'));
-            } else if (value !== this.ruleForm.pass) {
+            if (value !== this.ruleForm.newPass) {
                 callback(new Error('Password mismatch'));
             } else {
                 callback();
             }
         };
-        var checkEmail = (rule, value, callback) => {
-            if (value === '') {
-                return callback(new Error('Email cannot be empty'));
-            }
-
-            callback();
-        };
         return {
             ruleForm: {
                 pass: '',
                 email: '',
-                checkPass: '',
+                newPass: '',
+                checkNewPass: '',
                 userName: ''
             },
             rules: {
-                pass: [
-                    { validator: validatePass, trigger: 'blur' }
-                ],
-                checkPass: [
-                    { validator: validatePass2, trigger: 'blur' }
-                ],
-                userName: [
-                    { validator: checkUserName, trigger: 'blur' }
-                ],
-                email: [
-                    { validator: checkEmail, trigger: 'blur' }
+                pass: FormValidator.getPasswordValidators(),
+                email: FormValidator.getEmailValidators(),
+                newPass: FormValidator.getPasswordValidators(),
+                checkNewPass: [
+                    { validator: validatePass, required: true, trigger: 'blur' }
                 ]
             }
         };
@@ -106,13 +79,18 @@ export default {
             let data = {
                 name: this.ruleForm.userName,
                 password: this.ruleForm.pass,
-                email: this.ruleForm.email
+                email: this.ruleForm.email,
+                newPassword: this.ruleForm.newPass
             }
 
             let options = this.$store.getters['auth/authOptions']
             axios.put(this.hostUrl + '/api/users', data, options)
                 .then(res => {
                     if (res.data.code === '0') {
+                        this.$message({
+                            type: 'success',
+                            message: 'Settings saved successfully'
+                        })
                         this.$store.commit('user/setEmail', res.data.data.email)
                         this.$router.push('/')
                     } else {

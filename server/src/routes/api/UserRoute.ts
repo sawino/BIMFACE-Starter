@@ -29,13 +29,24 @@ userRouter
    })
     .put('/', async ctx => {
         const userRepository = getManager().getRepository(User);
-        let updateData = {
-            email: ctx.request.body.email,
-            password: await argon2.hash(ctx.request.body.password)
+        const existedUser = await userRepository.findOne({id: ctx.state.user.id}, {select: ['password']})
+        if (existedUser === undefined) {
+            ctx.body = ResponseData.createFailedResponse("Not authenticated")
         }
 
-        await userRepository.update(+ctx.state.user.id, updateData)
-        const updatedUser = await userRepository.findOne(+ctx.state.user.id)
+        let isVerified = await argon2.verify(existedUser.password, ctx.request.body.password)
+        if (!isVerified) {
+            ctx.body = ResponseData.createFailedResponse("Wrong password")
+            return
+        }
+
+        let updateData = {
+            email: ctx.request.body.email,
+            password: await argon2.hash(ctx.request.body.newPassword)
+        }
+
+        await userRepository.update({id: ctx.state.user.id}, updateData)
+        const updatedUser = await userRepository.findOne({id: ctx.state.user.id})
         let user = {
             name: updatedUser.name,
             email: updatedUser.email

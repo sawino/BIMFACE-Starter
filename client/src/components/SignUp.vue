@@ -28,42 +28,18 @@
 <script>
 import axios from 'axios'
 import {mapState} from 'vuex'
+import FormValidator from '../utils/FormValidator'
 
 export default {
-    data() {
-        var checkUserName = (rule, value, callback) => {
-            if (value === '') {
-                return callback(new Error('User name cannot be empty'));
-            }
-
-            callback();
-        };
+    data: function() {
         var validatePass = (rule, value, callback) => {
-            if (value === '') {
-                callback(new Error('Please input password'));
-            } else {
-                if (this.ruleForm.checkPass !== '') {
-                    this.$refs.ruleForm.validateField('checkPass');
-                }
-                callback();
-            }
-        };
-        var validatePass2 = (rule, value, callback) => {
-            if (value === '') {
-                callback(new Error('Please input password again'));
-            } else if (value !== this.ruleForm.pass) {
+            if (value !== this.ruleForm.pass) {
                 callback(new Error('Password mismatch'));
             } else {
                 callback();
             }
         };
-        var checkEmail = (rule, value, callback) => {
-            if (value === '') {
-                return callback(new Error('Email cannot be empty'));
-            }
 
-            callback();
-        };
         return {
             ruleForm: {
                 pass: '',
@@ -72,17 +48,11 @@ export default {
                 userName: ''
             },
             rules: {
-                pass: [
-                    { validator: validatePass, trigger: 'blur' }
-                ],
+                userName: FormValidator.getUserNameValidators(),
+                email: FormValidator.getEmailValidators(),
+                pass: FormValidator.getPasswordValidators(),
                 checkPass: [
-                    { validator: validatePass2, trigger: 'blur' }
-                ],
-                userName: [
-                    { validator: checkUserName, trigger: 'blur' }
-                ],
-                email: [
-                    { validator: checkEmail, trigger: 'blur' }
+                    { validator: validatePass, required: true, trigger: 'blur' }
                 ]
             }
         };

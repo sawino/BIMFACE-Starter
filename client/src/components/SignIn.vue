@@ -22,35 +22,18 @@
 <script>
 import axios from 'axios'
 import {mapState} from 'vuex'
+import FormValidator from '../utils/FormValidator'
 
 export default {
-    data() {
-        var checkUserName = (rule, value, callback) => {
-            if (value === '') {
-                return callback(new Error('User name cannot be empty'));
-            }
-
-            callback();
-        };
-        var validatePass = (rule, value, callback) => {
-            if (value === '') {
-                callback(new Error('Please input password'));
-            } else {
-                callback();
-            }
-        };
+    data: function() {
         return {
             ruleForm: {
                 pass: '',
                 userName: ''
             },
             rules: {
-                pass: [
-                    { validator: validatePass, trigger: 'blur' }
-                ],
-                userName: [
-                    { validator: checkUserName, trigger: 'blur' }
-                ]
+                pass: FormValidator.getPasswordValidators(),
+                userName: FormValidator.getUserNameValidators()
             }
         };
     },
