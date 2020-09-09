@@ -11,6 +11,7 @@
                 <el-tooltip content="Translate file" effect="light">
                     <el-button size="mini" icon="el-icon-s-promotion" @click="translateCheckedFiles"></el-button>
                 </el-tooltip>
+                <el-input style="width:110px;margin: 0 10px;" size="mini" placeholder="Search..." v-model="filterText"></el-input>
                 <upload-dialog ref="uploadDialog" @fileUploaded="onFileUploaded"></upload-dialog>
             </div>
             <el-scrollbar style="height:100%;" :vertical="true" :horizontal="false">
@@ -21,6 +22,7 @@
                     :default-expanded-keys="[translatedNodeKey, untranslatedNodeKey]"
                     node-key="fileId"
                     :disable="isSignedIn === false"
+                    :filter-node-method="filterNode"
                     @node-click="nodeClicked"
                     show-checkbox>
                 </el-tree>
@@ -47,6 +49,7 @@ export default {
             checkTranslateStatusTimer: '',
             translatingFileInfoList: [],
             noViewToken: true,
+            filterText: '',
             translatedNodeKey: 'TranslatedFiles',
             untranslatedNodeKey: 'UntranslatedFiles',
             hasReset: 'true',
@@ -54,6 +57,11 @@ export default {
                 label: 'name'
             },
             treeData: []
+        }
+    },
+    watch: {
+        filterText(val) {
+            this.$refs.fileTree.filter(val)
         }
     },
     computed: {
@@ -104,6 +112,10 @@ export default {
                         }
                     })
             })
+        },
+        filterNode(value, data) {
+            if (!value || this.isRootNode(data.fileId)) return true;
+            return data.name.indexOf(value) !== -1;
         },
         onFileUploaded: function(data) {
             console.log(data)
