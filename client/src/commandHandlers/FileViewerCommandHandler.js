@@ -238,6 +238,25 @@ class FullScreenHandler extends FileViewerCommandHandler {
             document.msFullScreen);
     }
 }
+
+class ExplosionHandler extends FileViewerCommandHandler {
+    constructor(fileViewer) {
+        super('Explosion', fileViewer)
+        this.isExploded = false
+    }
+
+    run(arg = 1.0) {
+        this.isExploded = !this.isExploded
+        if (this.isExploded) {
+            this.fileViewer.viewer.setExplosionExtent(1.0)
+        } else {
+            this.fileViewer.viewer.setExplosionExtent(0)
+        }
+
+        this.fileViewer.viewer.render()
+    }
+}
+
 export {
     SelectHandler,
     AddTagHandler,
@@ -245,5 +264,6 @@ export {
     LoadHandler,
     AutoRotateHandler,
     RemoveTagHandler,
-    FullScreenHandler
+    FullScreenHandler,
+    ExplosionHandler
 }

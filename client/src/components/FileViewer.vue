@@ -24,6 +24,9 @@
                 <el-tooltip content="Remove Tag" effect="light" :open-delay="menuOpenDelayValue">
                     <el-button @click="onRemoveTagButtonClicked" icon="el-icon-delete-location"></el-button>
                 </el-tooltip>
+                <el-tooltip content="Toggle explosion" effect="light" :open-delay="menuOpenDelayValue">
+                    <el-button @click="onToggleExplosionButtonClicked" icon="el-icon-s-grid"></el-button>
+                </el-tooltip>
                 <el-tooltip content="Toggle Full Screen" effect="light" :open-delay="menuOpenDelayValue">
                     <el-button @click="onToggleFullScreenButtonClicked" icon="el-icon-full-screen"></el-button>
                 </el-tooltip>
@@ -42,7 +45,8 @@ import {
     LoadHandler,
     RemoveTagHandler,
     AutoRotateHandler,
-    FullScreenHandler} from '../commandHandlers/FileViewerCommandHandler'
+    FullScreenHandler,
+    ExplosionHandler} from '../commandHandlers/FileViewerCommandHandler'
 /* eslint-disable */ 
 export default {
     data: function () {
@@ -84,7 +88,8 @@ export default {
             // we handle 3d models for now
             if (viewMetaData.viewType == '3DView') {
                 var webAppConfig = new Glodon.Bimface.Application.WebApplication3DConfig();
-                webAppConfig.domElement = viewContainer;    
+                webAppConfig.domElement = viewContainer;
+                webAppConfig.enableExplosion = true;
                 this.app = new Glodon.Bimface.Application.WebApplication3D(webAppConfig);    
                 this.app.addView(this.viewToken);
                 this.viewer = this.app.getViewer();
@@ -135,6 +140,9 @@ export default {
             let element = document.getElementById('fileViewer')
             this.commandHandlers['FullScreen'].run(element)
         },
+        onToggleExplosionButtonClicked: function() {
+            this.commandHandlers['Explosion'].run()
+        },
         resetData: function() {
             this.tagContainer = null,
             this.customData = {
@@ -161,6 +169,7 @@ export default {
         new AutoRotateHandler(this).load()
         new RemoveTagHandler(this).load()
         new FullScreenHandler(this).load()
+        new ExplosionHandler(this).load()
     }
 }
 
