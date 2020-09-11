@@ -248,7 +248,11 @@ class ExplosionHandler extends FileViewerCommandHandler {
     run(arg = 1.0) {
         this.isExploded = !this.isExploded
         if (this.isExploded) {
-            this.fileViewer.viewer.setExplosionExtent(1.0)
+            if (arg < 0 || arg > 1.0) {
+                arg = 1.0
+            }
+
+            this.fileViewer.viewer.setExplosionExtent(arg)
         } else {
             this.fileViewer.viewer.setExplosionExtent(0)
         }
