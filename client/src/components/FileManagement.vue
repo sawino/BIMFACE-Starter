@@ -42,6 +42,7 @@ import axios from 'axios';
 import FileViewer from '@/components/FileViewer'
 import {mapState} from 'vuex'
 import UploadDialog from '@/components/UploadDialog'
+import FileStatus from '@/common/FileStatus'
 
 export default {
     data: function() {
@@ -85,16 +86,16 @@ export default {
 
             this.fileInfoList.forEach((item) => {
                 switch (item.status) {
-                case 'translated':
+                case FileStatus.Translated:
                     translatedFileInfoList.push(item)
                     break
-                case 'uploaded':
+                case FileStatus.Uploaded:
                     untranslatedFileInfoList.push(item)
                     break
-                case 'translating':
+                case FileStatus.Translating:
                     translatingFileInfoList.push(item)
                     break
-                case 'failed':
+                case FileStatus.Failed:
                     failedFileInfoList.push(item)
                     break
                 default:
@@ -206,7 +207,7 @@ export default {
                 type: 'warning'
             }).then(() => {
                 for (let item of checkedNodes) {
-                    if (this.isRootNode(item.fileId) || item.status === 'translated' || item.status === 'translating') {
+                    if (this.isRootNode(item.fileId) || item.status === FileStatus.Translated || item.status === FileStatus.Translating) {
                         continue
                     }
 
@@ -256,14 +257,14 @@ export default {
                 axios.get(this.hostUrl + '/api/translate', options).then(res => {
                     if (res.data.code === '0') {
                         fileInfo.status = res.data.data.status
-                        if (fileInfo.status === 'translated') {
+                        if (fileInfo.status === FileStatus.Translated) {
                             this.$message({
                                 message: `Successfully translated ${fileInfo.name}`,
                                 type: 'success'
                             })
                             this.$refs.fileTree.remove(res.data.data.fileId)
                             this.$refs.fileTree.append(fileInfo, this.translatedNodeKey)
-                        } else if (fileInfo.status === 'failed') {
+                        } else if (fileInfo.status === FileStatus.Failed) {
                             this.$message.error(`Failed to translate ${fileInfo.name}`)
                             this.$refs.fileTree.remove(res.data.data.fileId)
                             this.$refs.fileTree.append(fileInfo, this.failedNodeKey)

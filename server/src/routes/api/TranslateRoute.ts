@@ -4,6 +4,7 @@ import {ResponseData} from '../../common/ResponseData'
 import {getManager} from 'typeorm'
 import File from '../../entity/File'
 import User from '../../entity/User'
+import FileStatus from '../../common/FileStatus'
 
 let translateRouter = new Router();
 translateRouter.prefix('/translate')
@@ -28,7 +29,7 @@ translateRouter
 
         let res = await bimfaceService.translateFileAsync(file.fileId, file.name);
         if (res !== null) {
-            file.status = "translating"
+            file.status = FileStatus.Translating
             await fileRepository.save(file)
         }
         ctx.body = ResponseData.build(res !== null, file, 'Cannot translate file')
@@ -49,7 +50,7 @@ translateRouter
             return;
         }
 
-        if (file.status === 'translated') {
+        if (file.status === FileStatus.Translated) {
             ctx.body = ResponseData.createSuccessResponse(file)
             return
         }
@@ -59,16 +60,16 @@ translateRouter
         if (res.code === 'success') {
             switch (res.data.status) {
                 case 'success':
-                    status = 'translated'
+                    status = FileStatus.Translated
                     break
                 case 'processing':
-                    status = 'translating'
+                    status = FileStatus.Translating
                     break
                 case 'failed':
-                    status = 'failed'
+                    status = FileStatus.Failed
                     break
                 default:
-                    status = 'failed'
+                    status = FileStatus.Failed
             }
             file.status = status
             const updateResult = await fileRepository.save(file);

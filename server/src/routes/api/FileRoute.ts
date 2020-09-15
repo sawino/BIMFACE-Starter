@@ -1,11 +1,10 @@
 import * as Router from 'koa-router'
 import bimfaceService from '../../services/BimfaceService'
 import {ResponseData} from '../../common/ResponseData'
-import Request from '../../utils/Request'
 import {getManager} from 'typeorm'
 import File from '../../entity/File'
 import User from '../../entity/User'
-import FileCustomData from '../../entity/FileCustomData'
+import FileStatus from '../../common/FileStatus'
 
 const fs = require('fs')
 const qs = require('querystring')
@@ -45,7 +44,7 @@ fileRouter
         console.log(res)
         console.log(file)
         file.name = res.name;
-        file.status = "uploaded"
+        file.status = FileStatus.Uploaded
         file.fileId = res.fileId
         file.user = user;
         const savedFile = await fileRepository.save(file)
