@@ -158,7 +158,7 @@ class BimfaceService {
         })
     
         let res = await Request.get('https://api.bimface.com/translate', options)
-        return res.data.data
+        return res.data
     }
     // -------------------- translate end --------------------------
 

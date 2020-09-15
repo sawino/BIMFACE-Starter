@@ -47,11 +47,12 @@ export default {
     data: function() {
         return {
             checkTranslateStatusTimer: '',
-            translatingFileInfoList: [],
             noViewToken: true,
             filterText: '',
             translatedNodeKey: 'TranslatedFiles',
             untranslatedNodeKey: 'UntranslatedFiles',
+            translatingNodeKey: 'TranslatingFiles',
+            failedNodeKey: 'FailedFiles',
             hasReset: 'true',
             defaultProps: {
                 label: 'name'
@@ -79,16 +80,32 @@ export default {
         init: function () {
             let translatedFileInfoList = []
             let untranslatedFileInfoList = []
+            let translatingFileInfoList = []
+            let failedFileInfoList = []
+
             this.fileInfoList.forEach((item) => {
-                if (item.isTranslated) {
+                switch (item.status) {
+                case 'translated':
                     translatedFileInfoList.push(item)
-                } else {
+                    break
+                case 'uploaded':
+                    untranslatedFileInfoList.push(item)
+                    break
+                case 'translating':
+                    translatingFileInfoList.push(item)
+                    break
+                case 'failed':
+                    failedFileInfoList.push(item)
+                    break
+                default:
                     untranslatedFileInfoList.push(item)
                 }
             })
 
             this.$refs.fileTree.updateKeyChildren(this.translatedNodeKey, translatedFileInfoList);
             this.$refs.fileTree.updateKeyChildren(this.untranslatedNodeKey, untranslatedFileInfoList);
+            this.$refs.fileTree.updateKeyChildren(this.translatingNodeKey, translatingFileInfoList);
+            this.$refs.fileTree.updateKeyChildren(this.failedNodeKey, failedFileInfoList)
         },
         viewFile: function (item) {
             this.noViewToken = false
@@ -189,7 +206,7 @@ export default {
                 type: 'warning'
             }).then(() => {
                 for (let item of checkedNodes) {
-                    if (this.isRootNode(item.fileId) || item.isTranslated === true) {
+                    if (this.isRootNode(item.fileId) || item.status === 'translated' || item.status === 'translating') {
                         continue
                     }
 
@@ -203,8 +220,8 @@ export default {
                         .then(res => {
                             if (res.data.code === '0') {
                                 let fileInfo = res.data.data
-                                fileInfo.isCompleted = false
-                                this.translatingFileInfoList.push(fileInfo);
+                                this.$refs.fileTree.remove(fileInfo.fileId)
+                                this.$refs.fileTree.append(fileInfo, this.translatingNodeKey)
                             }
                         })
                         .catch(err => {
@@ -215,42 +232,47 @@ export default {
             })
         },
         isRootNode(key) {
-            if (key === this.translatedNodeKey || key === this.untranslatedNodeKey) {
+            if (key === this.translatedNodeKey ||
+                key === this.untranslatedNodeKey ||
+                key === this.translatingNodeKey ||
+                key === this.failedNodeKey) {
                 return true
             }
 
             return false
         },
         checkTranslateStatus: function() {
-            for (let fileInfo of this.translatingFileInfoList) {
-                if (fileInfo.isCompleted === false) {
-                    let options = this.$store.getters['auth/authOptions']
-                    options = Object.assign(options,
-                        {
-                            params: {
-                                fileId: fileInfo.fileId
-                            }
-                        })
-                    axios.get(this.hostUrl + '/api/translate', options).then(res => {
-                        console.log(res.data)
-                        if (res.data.code === '0' && res.data.data.isTranslated === true) {
-                            fileInfo.isCompleted = true
+            let translatingFilesParentNode = this.$refs.fileTree.getNode(this.translatingNodeKey)
+            let translatingFilesNodes = translatingFilesParentNode.childNodes
+            for (let fileNode of translatingFilesNodes) {
+                let fileInfo = fileNode.data
+                let options = this.$store.getters['auth/authOptions']
+                options = Object.assign(options,
+                    {
+                        params: {
+                            fileId: fileInfo.fileId
+                        }
+                    })
+                axios.get(this.hostUrl + '/api/translate', options).then(res => {
+                    if (res.data.code === '0') {
+                        fileInfo.status = res.data.data.status
+                        if (fileInfo.status === 'translated') {
                             this.$message({
                                 message: `Successfully translated ${fileInfo.name}`,
                                 type: 'success'
                             })
                             this.$refs.fileTree.remove(res.data.data.fileId)
                             this.$refs.fileTree.append(fileInfo, this.translatedNodeKey)
+                        } else if (fileInfo.status === 'failed') {
+                            this.$message.error(`Failed to translate ${fileInfo.name}`)
+                            this.$refs.fileTree.remove(res.data.data.fileId)
+                            this.$refs.fileTree.append(fileInfo, this.failedNodeKey)
                         }
-                    }).catch(err => {
-                        console.log('ee' + err)
-                    })
-                }
+                    }
+                }).catch(err => {
+                    console.log('ee' + err)
+                })
             }
-
-            this.translatingFileInfoList = this.translatingFileInfoList.filter((item) => {
-                return item.isCompleted === false
-            })
         }
     },
     mounted: function() {
@@ -270,6 +292,17 @@ export default {
                 name: 'Untranslated Files'
             })
 
+        this.$refs.fileTree.data.push(
+            {
+                fileId: this.translatingNodeKey,
+                name: 'Translating Files'
+            })
+
+        this.$refs.fileTree.data.push(
+            {
+                fileId: this.failedNodeKey,
+                name: 'Failed Files'
+            })
         this.checkTranslateStatusTimer = setInterval(this.checkTranslateStatus, 15 * 1000)
         axios.get(this.hostUrl + '/api/files', this.$store.getters['auth/authOptions'])
             .then((fileRes) => {

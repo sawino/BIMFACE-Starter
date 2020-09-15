@@ -20,15 +20,17 @@ translateRouter
             return;
         }
 
-        const file = await fileRepository.findOne({fileId: ctx.request.body.fileId, user: user})
+        let file = await fileRepository.findOne({fileId: ctx.request.body.fileId, user: user})
         if (file === undefined || file === null) {
             ctx.body = ResponseData.createFailedResponse("Cannot find file")
             return;
         }
 
-        let res = await bimfaceService.translateFileAsync(file.fileId,
-            file.name);
-
+        let res = await bimfaceService.translateFileAsync(file.fileId, file.name);
+        if (res !== null) {
+            file.status = "translating"
+            await fileRepository.save(file)
+        }
         ctx.body = ResponseData.build(res !== null, file, 'Cannot translate file')
     })
     .get('/', async ctx => {
@@ -47,22 +49,33 @@ translateRouter
             return;
         }
 
-        if (file.isTranslated) {
+        if (file.status === 'translated') {
             ctx.body = ResponseData.createSuccessResponse(file)
             return
         }
 
         let res = await bimfaceService.getFileTranslateStatus(file.fileId)
-        if (res.status === 'success') {
-            file.isTranslated = true
+        let status = ''
+        if (res.code === 'success') {
+            switch (res.data.status) {
+                case 'success':
+                    status = 'translated'
+                    break
+                case 'processing':
+                    status = 'translating'
+                    break
+                case 'failed':
+                    status = 'failed'
+                    break
+                default:
+                    status = 'failed'
+            }
+            file.status = status
             const updateResult = await fileRepository.save(file);
             file = await fileRepository.findOne({fileId: file.fileId})
-            console.log(updateResult)
-            console.log(file)
         }
 
-        console.log(res)
-        ctx.body = ResponseData.build(res.status === 'success', file, res.status, file)
+        ctx.body = ResponseData.createSuccessResponse(file)
     })
 
 export default translateRouter

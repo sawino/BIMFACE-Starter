@@ -45,7 +45,7 @@ fileRouter
         console.log(res)
         console.log(file)
         file.name = res.name;
-        file.isTranslated = false
+        file.status = "uploaded"
         file.fileId = res.fileId
         file.user = user;
         const savedFile = await fileRepository.save(file)

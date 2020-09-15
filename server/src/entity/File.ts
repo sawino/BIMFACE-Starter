@@ -10,7 +10,7 @@ export default class File extends BaseEntity {
     name: string
 
     @Column()
-    isTranslated: boolean
+    status: string
 
     @Column()
     fileId: string
