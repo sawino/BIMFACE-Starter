@@ -20,4 +20,7 @@ export default class User extends BaseEntity {
 
     @OneToMany(type => File, file => file.user)
     files: File[]
+
+    @Column()
+    role: string
 }

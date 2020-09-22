@@ -6,6 +6,7 @@ import User from '../../entity/User'
 import { ResponseData } from '../../common/ResponseData'
 import * as jwt from 'jsonwebtoken'
 import globalConfigs from '../../configs/GlobalConfigs'
+import Roles from '../../common/Roles'
 
 let authRouter = new Router();
 authRouter.prefix('/auth');
@@ -14,19 +15,18 @@ authRouter
     .post('/login', async ctx => {
         const userRepository = getManager().getRepository(User);
 
-        // console.log(ctx.request.body);
         const user = await userRepository
             .createQueryBuilder()
             .where({name: ctx.request.body.name})
             .addSelect('User.password')
             .getOne();
-
+   
         let errorMessage = '';
         let token = ''
         if (!user) {
             errorMessage = `User doesn't exist`;
         } else if (await argon2.verify(user.password, ctx.request.body.password)) {
-            token = jwt.sign({id: user.id}, globalConfigs.getJwtSecret(), {expiresIn: globalConfigs.getJwtExpireIn()})
+            token = jwt.sign({id: user.id, role: user.role}, globalConfigs.getJwtSecret(), {expiresIn: globalConfigs.getJwtExpireIn()})
         } else {
             errorMessage = 'Password incorrect'
         }
@@ -51,6 +51,7 @@ authRouter
         const newUser = new User();
         newUser.name = ctx.request.body.name;
         newUser.email = ctx.request.body.email;
+        newUser.role = Roles.User
         newUser.password = await argon2.hash(ctx.request.body.password);
 
         const tempUser = await userRepository.save(newUser);

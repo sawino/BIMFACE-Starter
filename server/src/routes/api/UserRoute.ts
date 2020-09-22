@@ -5,28 +5,41 @@ import User from '../../entity/User'
 import { ResponseData } from '../../common/ResponseData'
 import AuthHelper from '../../utils/AuthHelper'
 import * as argon2 from 'argon2'
+import {checkRole} from '../../middlewares/CheckRole'
+import Roles from '../../common/Roles'
+import { O_RDONLY } from 'constants'
 
 let userRouter = new Router();
 userRouter.prefix('/users')
 
 userRouter
-    .get('/', async ctx => {
-        ctx.body = ResponseData.createFailedResponse("Not Available")
-        // const userRepository = getManager().getRepository(User);
-        // const users = await userRepository.find()
-        // ctx.body = ResponseData.build(users !== null, users, 'Failed to get users');
+    .get('/', checkRole(Roles.Admin), async ctx => {
+        const userRepository = getManager().getRepository(User);
+        const users = await userRepository.find()
+        ctx.body = ResponseData.build(users !== null, users, 'Failed to get users');
     })
-    .get('/:id', async ctx => {
-        ctx.body = ResponseData.createFailedResponse("Not Available")
-        // if (AuthHelper.isDifferentUser(ctx)) {
-        //     ctx.body = ResponseData.createFailedResponse("Not Authorized");
-        //     return;
-        // }
-
-        // const userRepository = getManager().getRepository(User);
-        // const user = await userRepository.findOne(+ctx.params.id)
-        // ctx.body = ResponseData.build(user !== null, user, `Failed to get user with id ${ctx.params.id}`);
+    .get('/:id', checkRole(Roles.Admin), async ctx => {
+        const userRepository = getManager().getRepository(User);
+        const user = await userRepository.findOne({id: ctx.params.id})
+        ctx.body = ResponseData.build(user !== undefined, user, `Failed to get user with id ${ctx.params.id}`);
    })
+    .put('/:id', checkRole(Roles.Admin), async ctx => {
+        let user = await getManager().findOne(User, {id: ctx.params.id})
+        if (user === undefined) {
+            ctx.body = ResponseData.createFailedResponse(`Cannot find user with id ${ctx.params.id}`)
+            return
+        }
+
+        user.name = ctx.request.body.name
+        user.password = await argon2.hash(ctx.request.body.password)
+        user.email = ctx.request.body.email
+        user.role = ctx.request.body.role
+
+        const {password, ...tempUser} = user
+        await getManager().save(user)
+
+        ctx.body = ResponseData.createSuccessResponse(tempUser)
+    })
     .put('/', async ctx => {
         const userRepository = getManager().getRepository(User);
         const existedUser = await userRepository.findOne({id: ctx.state.user.id}, {select: ['password']})
@@ -54,20 +67,15 @@ userRouter
 
         ctx.body = ResponseData.build(updatedUser !== null, user, `Failed to update user with id ${ctx.params.id}`);
     })
-    .delete('/:id', async ctx => {
-        ctx.body = ResponseData.createFailedResponse("Not Available")
-        // 
-        // if (AuthHelper.isDifferentUser(ctx)) {
-        //     ctx.body = ResponseData.createFailedResponse("Not Authorized");
-        // }
-
-        // let request: any = ctx.request;
-        // const userRepository = getManager().getRepository(User);
-        // todo: delete file from bimface
-        // todo: delete file custom data from db
-        // todo: delete file from db
-        // await userRepository.remove(+ctx.params.id)
-        // ctx.body = ResponseData.build(true);
+    .delete('/:id', checkRole(Roles.Admin), async ctx => {
+        let user = await getManager().findOne(User, {id: ctx.params.id})
+        if (user === undefined) {
+            ctx.body = ResponseData.createFailedResponse(`Cannot find user with id ${ctx.params.id}`)
+            return
+        }
+        
+        await getManager().remove(User, user)
+        ctx.body = ResponseData.createSuccessResponse('User deleted');
     });
 
 export default userRouter
