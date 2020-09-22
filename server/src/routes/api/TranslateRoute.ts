@@ -28,11 +28,11 @@ translateRouter
         }
 
         let res = await bimfaceService.translateFileAsync(file.fileId, file.name);
-        if (res !== null) {
+        if (res.code === 'success') {
             file.status = FileStatus.Translating
             await fileRepository.save(file)
         }
-        ctx.body = ResponseData.build(res !== null, file, 'Cannot translate file')
+        ctx.body = ResponseData.build(res.code === 'success', file, 'Cannot translate file')
     })
     .get('/', async ctx => {
         const userRepository = await getManager().getRepository(User)

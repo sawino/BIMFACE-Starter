@@ -47,11 +47,7 @@ class BimfaceService {
 
         let queryString = qs.stringify(query)
         let response = await Request.get('https://api.bimface.com/view/token?'+ queryString, await this.getAuthOptionsAsync());
-        if (response.data.code !== 'success') {
-            return ''
-        }
-
-        return response.data.data;
+        return response.data
     }
 
     public async getAccessTokenAsync() {
@@ -78,11 +74,7 @@ class BimfaceService {
         //offset, rows, startTime, endTime, status, suffixa
         let queryString = qs.stringify(args)
         let response = await Request.get('https://file.bimface.com/files?' + queryString, await this.getAuthOptionsAsync());
-        if (response.data.code !== 'success') {
-            return null
-        }
-
-        return response.data.data
+        return response.data
     }
 
     public async uploadFileAsync(fileName, filePath, contentLength) {
@@ -97,20 +89,8 @@ class BimfaceService {
 
         let url = "https://file.bimface.com/upload";
 
-        try {
-
-            let res = await Request.put(url, fs.createReadStream(filePath), options)
-            console.log(res)
-            if (res.data.code === 'success') {
-                return res.data.data
-            } else {
-                return null
-            }
-
-        } catch (err) {
-            console.log("upload error: " + err);
-            return null
-        }
+        let response = await Request.put(url, fs.createReadStream(filePath), options)
+        return response.data
     }
 
     public async deleteFileAsync(fileId) {
@@ -142,11 +122,7 @@ class BimfaceService {
         }
 
         let res = await Request.put('https://api.bimface.com/translate', tempTranslateOptions, options);
-        if (res.data.code !== 'success') {
-            return null
-        }
-
-        return res.data.data
+        return res.data
     }
 
     public async getFileTranslateStatus(fileId) {

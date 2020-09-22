@@ -31,21 +31,19 @@ fileRouter
         }
 
         const fileRepository = await getManager().getRepository(File)
-        let res = await bimfaceService.uploadFileAsync(request.files.file.name,
+        let response = await bimfaceService.uploadFileAsync(request.files.file.name,
             request.files.file.path,
             request.files.file.size);
 
-        if (res === null) {
+        if (response.code !== 'success') {
             ctx.body = ResponseData.createFailedResponse("Failed to upload file")
             return;
         }
 
         let file = new File();
-        console.log(res)
-        console.log(file)
-        file.name = res.name;
+        file.name = response.data.name;
         file.status = FileStatus.Uploaded
-        file.fileId = res.fileId
+        file.fileId = response.data.fileId
         file.user = user;
         const savedFile = await fileRepository.save(file)
 

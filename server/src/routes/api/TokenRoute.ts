@@ -30,8 +30,8 @@ tokenRouter
             return;
         }
         
-        let token = await bimfaceService.getFileViewTokenAsync(ctx.query.fileId)
-        ctx.body = ResponseData.build(token !== '', token, "Failed to get file view token")
+        let response = await bimfaceService.getFileViewTokenAsync(ctx.query.fileId)
+        ctx.body = ResponseData.build(response.code === 'success', response.data, "Failed to get file view token")
     })
 
 export default tokenRouter
