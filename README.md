@@ -23,15 +23,20 @@ A starter for [BIMFACE](http://www.bimface.com) development which has both clien
 * Prepare Node.js environment
   * Install [Node](https://nodejs.org/en/)
 ## Start Server 
-* Go to *server* folder.
+* Go to *server* folder in the terminal.
 * Install dependencies.
   * ```npm install```
-* Set up environment variables. Mac/Linux terminal uses ```export <var_name>=<var_value>``` and Windows terminal uses ```set <var_name>=<var_value>```. The examples below use Mac style.
-    * Set BIMFACE app key. ```export BIMFACE_APP_KEY=<your_key>```, e.g., *export BIMFACE_APP_KEY=bar*
-    * Set BIMFACE app secret. ```export BIMFACE_APP_SECRET=<your_secret>```
-    * Set database user name. ```export DB_USER_NAME=<your_name>```
-    * Set database user password. ```export DB_PASSWORD=<your_password>```
-
+* Set up BIMFACE application credentials by setting environment variables. Mac/Linux terminal uses ```export <var_name>=<var_value>``` and Windows terminal uses ```set <var_name>=<var_value>```. The examples below use Mac style.
+    * Set BIMFACE app key. ```export BIMFACE_APP_KEY="<your_key>"```, e.g., *export BIMFACE_APP_KEY="bar"*
+    * Set BIMFACE app secret. ```export BIMFACE_APP_SECRET="<your_secret>"```
+* Set up database connection information by modifying *server/ormconfig.json*. There are two option sets in the file, and we just need to modify the one with name "default".
+  * Set database type. `"type": "mysql"`
+  * Set database host. `"host": "localhost"`
+  * Set database port. `"port": "3306"`
+  * Set database username. `"username": "<your_name>"`, e.g., *"username": "sonic"*
+  * Set database user password. `"password": "<your_password>"`
+  * Set database name. `"database": "bimface_starter"`
+> You can also do this by setting envionment variables. See more on *Environment Variables* section below.
 * Run server. The default server address is *http://localhost:3000*
   * ```npm run dev```
 ## Start Client
@@ -78,6 +83,13 @@ MIT.
 # FAQ
 * How to save / load / extend the business data?
   * Go to *client/src/components/FileViewer.ts*, check save() and load() methods. Each file has a custom data for business data storage, and the size is 16 MB.
+* How to create database tables in production?
+  * ```npm run typeorm schema:sync```
+* How to create an admin user?
+  * Make sure the connection information is set properly in ormconfig.json.
+  * Go to *server/src/migration/1600160859707-CreateAdmin.js*.
+  * **Modify the user credentials.**
+  * ```npm run typeorm migration:run```
 * How to deploy the output in production?
   * For server
     * ```npm run build```
