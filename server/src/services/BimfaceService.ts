@@ -1,6 +1,7 @@
 import Base64 from '../utils/Base64'
 import globalConfigs from '../configs/GlobalConfigs'
 import Request from '../utils/Request'
+import ViewTokenType from '../common/ViewTokenType'
 const qs = require('querystring')
 const fs = require('fs')
 
@@ -40,9 +41,28 @@ class BimfaceService {
         }
     }
 
-    public async getFileViewTokenAsync(id) {
-        let query = {
-            fileId: id
+    public async getViewTokenAsync(id, viewTokenType = ViewTokenType.File) {
+        let query = {}
+        switch (viewTokenType) {
+            case ViewTokenType.File:
+            query = {
+                fileId: id
+            }
+            break
+            case ViewTokenType.Integrate:
+            query = {
+                integrateId: id
+            }
+            break
+            case ViewTokenType.Compare:
+            query = {
+                compareId: id
+            }
+            break
+            default:
+            query = {
+                fileId: id
+            }
         }
 
         let queryString = qs.stringify(query)

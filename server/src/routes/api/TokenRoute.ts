@@ -5,14 +5,15 @@ import {ResponseData} from '../../common/ResponseData'
 import User from '../../entity/User'
 import File from '../../entity/File'
 import {getManager} from 'typeorm'
+import {checkRole} from '../../middlewares/CheckRole'
+import Roles from '../../common/Roles'
 
 tokenRouter.prefix('/token')
 
 tokenRouter
-    .get('/accessToken', async ctx => {
-        ctx.body = ResponseData.createFailedResponse("Not available")
-        // let token = await bimfaceService.getAccessTokenAsync();
-        // ctx.body = ResponseData.build(token !== '', token, "Authentication failed")
+    .get('/accessToken', checkRole(Roles.Admin), async ctx => {
+        let token = await bimfaceService.getAccessTokenAsync();
+        ctx.body = ResponseData.build(token !== '', token, "Failed to get access token")
     })
     .get('/viewToken', async ctx => {
         const userRepository = await getManager().getRepository(User)
@@ -30,7 +31,7 @@ tokenRouter
             return;
         }
         
-        let response = await bimfaceService.getFileViewTokenAsync(ctx.query.fileId)
+        let response = await bimfaceService.getViewTokenAsync(ctx.query.fileId)
         ctx.body = ResponseData.build(response.code === 'success', response.data, "Failed to get file view token")
     })
 
