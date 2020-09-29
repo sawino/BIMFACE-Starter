@@ -7,6 +7,8 @@ import { ResponseData } from '../../common/ResponseData'
 import * as jwt from 'jsonwebtoken'
 import globalConfigs from '../../configs/GlobalConfigs'
 import Roles from '../../common/Roles'
+import {validate} from 'class-validator'
+import ValidationErrorHelper from '../../utils/ValidationErrorHelper'
 
 let authRouter = new Router();
 authRouter.prefix('/auth');
@@ -52,6 +54,12 @@ authRouter
         newUser.name = ctx.request.body.name;
         newUser.email = ctx.request.body.email;
         newUser.role = Roles.User
+        newUser.password = ctx.request.body.password
+        const errors = await validate(newUser)
+        if (errors.length > 0) {
+            ctx.body = ResponseData.createFailedResponse(ValidationErrorHelper.getFirstErrorMessage(errors))
+            return
+        }
         newUser.password = await argon2.hash(ctx.request.body.password);
 
         const tempUser = await userRepository.save(newUser);

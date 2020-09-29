@@ -8,6 +8,8 @@ import * as argon2 from 'argon2'
 import {checkRole} from '../../middlewares/CheckRole'
 import Roles from '../../common/Roles'
 import { O_RDONLY } from 'constants'
+import {validate} from 'class-validator'
+import ValidationErrorHelper from '../../utils/ValidationErrorHelper'
 
 let userRouter = new Router();
 userRouter.prefix('/users')
@@ -31,10 +33,16 @@ userRouter
         }
 
         user.name = ctx.request.body.name
-        user.password = await argon2.hash(ctx.request.body.password)
+        user.password = ctx.request.body.password
         user.email = ctx.request.body.email
         user.role = ctx.request.body.role
-
+        const errors = await validate(user)
+        if (errors.length > 0) {
+            ctx.body = ResponseData.createFailedResponse(ValidationErrorHelper.getFirstErrorMessage(errors))
+            return
+        }
+        
+        user.password = await argon2.hash(ctx.request.body.password)
         const {password, ...tempUser} = user
         await getManager().save(user)
 
@@ -50,6 +58,15 @@ userRouter
         let isVerified = await argon2.verify(existedUser.password, ctx.request.body.password)
         if (!isVerified) {
             ctx.body = ResponseData.createFailedResponse("Wrong password")
+            return
+        }
+
+        let validateUser = new User()
+        validateUser.email = ctx.request.body.email
+        validateUser.password = ctx.request.body.newPassword
+        const errors = await validate(validateUser, { skipMissingProperties: true })
+        if (errors.length > 0) {
+            ctx.body = ResponseData.createFailedResponse(ValidationErrorHelper.getFirstErrorMessage(errors))
             return
         }
 
